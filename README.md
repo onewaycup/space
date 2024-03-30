@@ -11,3 +11,5 @@
 - `make run`
 ### dev run:
 - `make clean space run`
+### spielen:
+W A S D zum bewegen und scollen zum zoomen
