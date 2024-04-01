@@ -1,4 +1,3 @@
-#include <KHR/khrplatform.h>
 #include <math.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -30,6 +29,7 @@ Kamera kamera = {
 typedef struct {
   float position[2];
   float texcoord[2];
+  float farbe[4];
 } Knoten;
 
 typedef struct {
@@ -44,6 +44,7 @@ typedef struct {
     int64_t y;
     float durchmesser;
     unsigned int masse;
+    float farbe[4];
 } Planet;
 
 
@@ -56,12 +57,13 @@ static unsigned int lade_shader() {
   const char* vertex_shader_code =
                 "#version 460 core\n"
                 "layout (location = 0) in vec2 aPos; // the position variable has attribute position 0\n"
+                "layout (location = 1) in vec4 farbe;\n"
                 "out vec4 vertexColor; // specify a color output to the fragment shader\n"
                 "uniform float groesze;"
                 "void main()\n"
                 "{\n"
                 "    gl_Position = vec4(aPos * groesze, 0.0, 1.0); // see how we directly give a vec3 to vec4's constructor\n"
-                "    vertexColor = vec4(1.0, 0.9, 0.0, 1.0); // set the output variable to a dark-red color\n"
+                "    vertexColor = farbe;\n"
                 "}\n";
   /**Hier ist der Code für den Fragment Shader.
     Der Fragment Shader wandelt die Informationen des Vertex Shaders in die Pixel um,
@@ -235,7 +237,8 @@ int main(){
     //Definiere wo die Position des Knotens im Speicher liegt:
     //Stelle Eingschaft; wie viele Variablen; Variablen Typ; soll die Variable umformatiert werden; Abstand zwischen den Knoten; Abstande vom Knoten Beginn bis zur Position im Speicher
     //glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Knoten), (const void*)offsetof(Knoten, position));
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Knoten), 0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Knoten), (const void*)offsetof(Knoten, position));
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Knoten), (const void*)offsetof(Knoten, farbe));
 
     unsigned int ebo;
     glGenBuffers(1, &ebo);
@@ -248,10 +251,10 @@ int main(){
     unsigned int shader = lade_shader();
 
     Planet planeten[] = {
-        {.x = 0, .y = 0, .durchmesser = 12000, .masse = 100000},
-        {.x = 100000, .y = 100000, .durchmesser = 5000, .masse = 1},
-        {.x = -100000, .y = -100000, .durchmesser = 8000, .masse = 1},
-        {.x = -100000, .y = 100000, .durchmesser = 20000, .masse = 1}
+        {.x = 0, .y = 0, .durchmesser = 12000, .masse = 100000, .farbe = {0.863, 0.925, 0.102, 1}},
+        {.x = 100000, .y = 100000, .durchmesser = 5000, .masse = 1, .farbe = {0.965, 0.569, 0.867, 1}},
+        {.x = -100000, .y = -100000, .durchmesser = 8000, .masse = 1, .farbe = {0.965, 0.569, 0.867, 1}},
+        {.x = -100000, .y = 100000, .durchmesser = 20000, .masse = 1, .farbe = {0.965, 0.569, 0.867, 1}}
     };
 
     double deltaTime;
@@ -292,10 +295,6 @@ int main(){
         float beschleunigung_x = 0;
         float beschleunigung_y = 0;
 
-        for (int anderer_planet = 0; anderer_planet < planten_anzahl; anderer_planet++) {
-            printf("%s%d%s%ld%s%ld\n", "planet ", anderer_planet, ": ", planeten[anderer_planet].x, " ", planeten[anderer_planet].y);
-        }
-
 /*          for (int i = 0; i < planten_anzahl; i++) {
             for (int anderer_planet = 0; anderer_planet < planten_anzahl; anderer_planet++) {
                 if (anderer_planet != i) {
@@ -321,37 +320,63 @@ int main(){
             planeten[i].y += beschleunigung_y * deltaTime * deltaTime;
         }*/
 
-        for (int i = 3; i < planten_anzahl; i++) {
+        for (int i = 1; i < planten_anzahl; i++) {
             delta_x = planeten[0].x - planeten[i].x;
             delta_y = planeten[0].y - planeten[i].x;
-            printf("%s%f%s%f\n", "delta x: ", delta_x, " delta y: ", delta_y);
+            //printf("%s%f%s%f\n", "delta x: ", delta_x, " delta y: ", delta_y);
 
             radius_q = delta_x * delta_x + delta_y * delta_y;
+            //printf("%f\n", radius_q);
             radius = sqrtf(radius_q);
-            printf("%s%f%s%f\n", "radius_q: ", radius_q, " radius: ", radius);
+            //printf("%s%f%s%f\n", "radius_q: ", radius_q, " radius: ", radius);
 
             beschleunigung = G * planeten[0].masse / radius_q;
 
             beschleunigung_x += beschleunigung * tan(delta_x / radius);
             beschleunigung_y += beschleunigung * tan(delta_y / radius);
-            printf("%s%f%s%f%s%f\n", "a: ", beschleunigung, " ax: ", beschleunigung_x, " ay: ", beschleunigung_y);
+            //printf("%s%f%s%f%s%f\n", "a: ", beschleunigung, " ax: ", beschleunigung_x, " ay: ", beschleunigung_y);
 
-            planeten[i].x += beschleunigung_x * deltaTime * 300 * deltaTime * 300;
-            planeten[i].y += beschleunigung_y * deltaTime * 300 * deltaTime * 300;
+            planeten[i].x += beschleunigung_x * deltaTime * deltaTime;
+            planeten[i].y += beschleunigung_y * deltaTime * deltaTime;
+        }
+
+        for (int anderer_planet = 0; anderer_planet < planten_anzahl; anderer_planet++) {
+            printf("%s%d%s%ld%s%ld\n", "planet ", anderer_planet, ": ", planeten[anderer_planet].x, " ", planeten[anderer_planet].y);
         }
 
         for (int i = 0; i < planten_anzahl; i++) {
             knoten[i * 4 + 0].position[0] = (planeten[i].x - kamera.x - planeten[i].durchmesser);
             knoten[i * 4 + 0].position[1] = (planeten[i].y - kamera.y - planeten[i].durchmesser);
+            memcpy(knoten[i * 4 + 0].farbe, planeten[i].farbe, sizeof(float) * 4);
+            // knoten[i * 4 + 0].farbe[0] = planeten[i].farbe[0];
+            // knoten[i * 4 + 0].farbe[1] = planeten[i].farbe[1];
+            // knoten[i * 4 + 0].farbe[2] = planeten[i].farbe[2];
+            // knoten[i * 4 + 0].farbe[3] = planeten[i].farbe[3];
 
             knoten[i * 4 + 1].position[0] = (planeten[i].x - kamera.x + planeten[i].durchmesser);
             knoten[i * 4 + 1].position[1] = (planeten[i].y - kamera.y - planeten[i].durchmesser);
+            memcpy(knoten[i * 4 + 1].farbe, planeten[i].farbe, sizeof(float) * 4);
+            // knoten[i * 4 + 1].farbe[0] = planeten[i].farbe[0];
+            // knoten[i * 4 + 1].farbe[1] = planeten[i].farbe[1];
+            // knoten[i * 4 + 1].farbe[2] = planeten[i].farbe[2];
+            // knoten[i * 4 + 1].farbe[3] = planeten[i].farbe[3];
 
             knoten[i * 4 + 2].position[0] = (planeten[i].x - kamera.x + planeten[i].durchmesser);
             knoten[i * 4 + 2].position[1] = (planeten[i].y - kamera.y + planeten[i].durchmesser);
+            memcpy(knoten[i * 4 + 2].farbe, planeten[i].farbe, sizeof(float) * 4);
+
+            // knoten[i * 4 + 2].farbe[0] = planeten[i].farbe[0];
+            // knoten[i * 4 + 2].farbe[1] = planeten[i].farbe[1];
+            // knoten[i * 4 + 2].farbe[2] = planeten[i].farbe[2];
+            // knoten[i * 4 + 2].farbe[3] = planeten[i].farbe[3];
 
             knoten[i * 4 + 3].position[0] = (planeten[i].x - kamera.x - planeten[i].durchmesser);
             knoten[i * 4 + 3].position[1] = (planeten[i].y - kamera.y + planeten[i].durchmesser);
+            memcpy(knoten[i * 4 + 3].farbe, planeten[i].farbe, sizeof(float) * 4);
+            // knoten[i * 4 + 3].farbe[0] = planeten[i].farbe[0];
+            // knoten[i * 4 + 3].farbe[1] = planeten[i].farbe[1];
+            // knoten[i * 4 + 3].farbe[2] = planeten[i].farbe[2];
+            // knoten[i * 4 + 3].farbe[3] = planeten[i].farbe[3];
         }
         //0, 1, 2, 2, 3, 0
         kanten[0] = 0;
@@ -391,6 +416,7 @@ int main(){
         //rückmeldung an das OS, dass das programm noch läuft
         glfwPollEvents();
         zeit_bild_ende = glfwGetTime();
+        //return 1; //das muss noch weg
     }
 
     glfwTerminate();
