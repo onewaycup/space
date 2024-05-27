@@ -6,8 +6,8 @@ DEBUG = -ggdb -fno-omit-frame-pointer
 OPTIMIZE = -O2
 
 
-space: Makefile main.c ./glad/src/glad.c
-	$(CC) -o $@ $(WARNINGS) $(DEBUG) $(OPTIMIZE) main.c ./glad/src/glad.c -lglfw3 -lrt -lm -ldl
+space: Makefile main.c 
+	$(CC) -o $@ $(WARNINGS) $(DEBUG) $(OPTIMIZE) main.c glad.c render.c texture.c -lglfw3 -lrt -lm -ldl -fopenmp
 
 clean:
 	rm -f space
