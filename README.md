@@ -1,15 +1,22 @@
 # space
-### zum ausführen:
-1. [gcc](https://gcc.gnu.org/install/) oder so instalieren
-2. [glfw](https://github.com/glfw/glfw/releases) herunterladen und einfügen und bei [glad](https://glad.dav1d.de/#language=c&specification=gl&api=gl%3D4.6&api=gles1%3Dnone&api=gles2%3Dnone&api=glsc2%3Dnone&profile=compatibility&loader=on) noch auf GENERATE klicken und die zip herunterladen, entpaken und einfügen
-3. build
-4. run
-### oder fertiges build herunterladen
-### build:
-- `make space`
-### run:
-- `make run`
-### dev run:
-- `make clean space run`
+### zum Kompileren:
+#### linux:
+1. gcc instalieren `sudo <packagemanager> install gcc`
+2. glfw instalieren `sudo <packagemanager> install glfw`
+4. `make clean space run`
+#### windows:
+2. [gcc](https://jmeubank.github.io/tdm-gcc/) herunterladen und beim instalieren "Alle Pakete" Option auswählen
+3. `gcc -o space.exe -Wall -ggdb -fno-omit-frame-pointer -O2 main.c glad.c render.c texture.c -lglfw3 -lm -fopenmp -Iinclude -Lbin -lopengl32 -lgdi32`
+#### glad und glfw müssen evtl. noch eingefügt werden
+### oder fertiges Build herunterladen
+#### linux: als ausfühbar makieren `./space`
+#### windows: `space.exe`
+
 ### spielen:
-W A S D zum bewegen und scollen zum zoomen
+S D zum drehen
+
+Leertaste zum beschleunigen
+
+Leertaste + Shift zum schnellen beschleunigen
+
+Scrollen zum zoomen
